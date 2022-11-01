@@ -8,7 +8,7 @@
 
 using namespace std;
 using namespace std::chrono;
-mutex mtx1, mtx2;
+mutex mtx1, mtx2, mtx3;
 
 class FirstClass
 {
@@ -71,18 +71,30 @@ void func1 (FirstClass& obj1, SecondClass& obj2, int iterations)
 	
 	mtx1.lock();
 	R = 1; // <-- here it can be R = rand() ...
-	for (int i=0; i<iterations; i++)
-	{
-		obj1.addValue(R);
+	try
+	{	
+		for (int i=0; i<iterations; i++)
+		{
+			obj1.addValue(R);
+		}
 	}
+	catch(...) 
+	{}
 	mtx1.unlock();
+	
 	
 	mtx2.lock();
 	R = 2; // <-- and here...
-	for (int i=0; i<iterations; i++)
+	try
 	{
-		obj2.addValue(R);
+	for (int i=0; i<iterations; i++)
+		{
+			obj2.addValue(R);
+		}	
 	}
+	catch(...)
+	{}
+  
 	mtx2.unlock();
 	
 }
@@ -93,18 +105,31 @@ void func2 (FirstClass& obj1, SecondClass& obj2, int iterations)
 	
 	mtx2.lock();
 	R = 3;
-	for (int i=0; i<iterations; i++)
+  
+	try
 	{
-		obj2.addValue(R);
+		for (int i=0; i<iterations; i++)
+		{
+			obj2.addValue(R);
+		}	
 	}
-	mtx2.unlock();
+	catch(...)
+	{}
+	mtx2.unlock();	
+	
+	
 	
 	mtx1.lock();
 	R = 4;
-	for (int i=0; i<iterations; i++) 
+	try
 	{
-		obj1.addValue(R);
+		for (int i=0; i<iterations; i++) 
+		{
+			obj1.addValue(R);
+		}	
 	}
+	catch(...)
+	{}
 	mtx1.unlock();
 }
 
@@ -115,11 +140,9 @@ void threads1_process(FirstClass& obj1, SecondClass& obj2, int N1, int K1)
 	for(int i=0; i<N1; i++)
 	{
 		myThreadsOne[i] = thread (func1, ref(obj1), ref(obj2), K1);
-		myThreadsOne[i].join(); // it is unnecessary here due to further reason mentiond after cout <<
-		
+
 		cout << "thread " + to_string(i+1) + ": \t myFirst = " + to_string(obj1.getValue()) + ", \t mySecond = " + to_string(obj2.getValue()) + "\n";
-		
-		/** current myFirst and mySecond will show wrong values (because of parallel computing of another threads), but at the end the result would be correct !!! **/
+
 	}
 }
 
@@ -133,11 +156,8 @@ void threads2_process(FirstClass& obj1, SecondClass& obj2, int N, int K2)
 	
 	for(int i=0; i<N2; i++)
 	{
-		myThreadsTwo[i] = thread (func2, ref(obj1), ref(obj2), K2);
-		myThreadsTwo[i].join();
-		
+		myThreadsTwo[i] = thread (func2, ref(obj1), ref(obj2), K2);		
 		cout << "thread " + to_string(i+Delta+1) + ": \t myFirst = " + to_string(obj1.getValue()) + ", \t mySecond = " + to_string(obj2.getValue()) + "\n";
-		
 	}
 }
 
@@ -180,7 +200,6 @@ int main()
 	cout << "\n\n \t Total: myFirst = " + to_string(myFirst.getValue()) + ", mySecond = " + to_string(mySecond.getValue()) + "\n";
 	auto finish = high_resolution_clock::now();
 	auto duration = duration_cast<microseconds>(finish - start);
-	
 	cout << "\ntime taken: " << duration.count() << " microseconds" << endl;
 	
 	fflush(stdin);
