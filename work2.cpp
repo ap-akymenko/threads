@@ -94,6 +94,7 @@ void func1 (FirstClass& obj1, SecondClass& obj2, int iterations)
 	}
 	catch(...)
 	{}
+  
 	mtx2.unlock();
 	
 }
@@ -104,6 +105,7 @@ void func2 (FirstClass& obj1, SecondClass& obj2, int iterations)
 	
 	mtx2.lock();
 	R = 3;
+  
 	try
 	{
 		for (int i=0; i<iterations; i++)
@@ -138,7 +140,9 @@ void threads1_process(FirstClass& obj1, SecondClass& obj2, int N1, int K1)
 	for(int i=0; i<N1; i++)
 	{
 		myThreadsOne[i] = thread (func1, ref(obj1), ref(obj2), K1);
+
 		cout << "thread " + to_string(i+1) + ": \t myFirst = " + to_string(obj1.getValue()) + ", \t mySecond = " + to_string(obj2.getValue()) + "\n";
+
 	}
 }
 
@@ -149,7 +153,6 @@ void threads2_process(FirstClass& obj1, SecondClass& obj2, int N, int K2)
 	int Delta = N/2;
 	
 	thread* myThreadsTwo = new thread[N2];
-	
 	
 	for(int i=0; i<N2; i++)
 	{
